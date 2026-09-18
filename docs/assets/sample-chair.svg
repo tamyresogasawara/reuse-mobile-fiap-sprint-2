@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+  <rect width="1200" height="900" fill="#eaf3e8"/>
+  <circle cx="965" cy="155" r="125" fill="#d7ff78" opacity=".85"/>
+  <rect x="260" y="300" width="680" height="320" rx="55" fill="#173f2a"/>
+  <rect x="320" y="205" width="560" height="180" rx="45" fill="#285d40"/>
+  <rect x="310" y="590" width="90" height="190" rx="30" fill="#173f2a"/>
+  <rect x="800" y="590" width="90" height="190" rx="30" fill="#173f2a"/>
+  <rect x="340" y="345" width="520" height="150" rx="32" fill="#d7ff78" opacity=".9"/>
+  <text x="600" y="855" text-anchor="middle" font-family="Arial" font-size="42" font-weight="700" fill="#173f2a">cadeira restaurada · pronta para circular</text>
+</svg>

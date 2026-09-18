@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.preview/
+.venv/
+.expo/
+.expo-shared/
+coverage/
+docs/rendered-s2/
+*.log
+.DS_Store
+.env
+.env.*

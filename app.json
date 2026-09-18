@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "ReUse",
+    "slug": "reuse-mobile",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "A ReUse usa a galeria somente para adicionar uma foto ao seu anúncio.",
+          "cameraPermission": "A ReUse usa a câmera somente para fotografar o item que você quer anunciar."
+        }
+      ]
+    ],
+    "experiments": {
+      "baseUrl": "/reuse-mobile-fiap-sprint-2"
+    },
+    "web": { "bundler": "metro" }
+  }
+}
