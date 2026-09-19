@@ -46,7 +46,7 @@ def footer(canvas, doc):
     canvas.line(20 * mm, 17 * mm, 190 * mm, 17 * mm)
     canvas.setFillColor(MUTED)
     canvas.setFont("Helvetica", 8)
-    canvas.drawString(20 * mm, 10 * mm, "ReUse Mobile - Sprint 2 - FIAP")
+    canvas.drawString(20 * mm, 10 * mm, "ReUse Mobile - Sprint 2 - FIAP - RM552055")
     canvas.drawRightString(190 * mm, 10 * mm, str(doc.page))
     canvas.restoreState()
 
@@ -105,7 +105,7 @@ story.extend([
     Table([[Paragraph("REUSE", ParagraphStyle(name="Brand", fontName="Helvetica-Bold", fontSize=30, leading=35, alignment=TA_CENTER, textColor=FOREST))]], colWidths=[170 * mm], rowHeights=[48 * mm], style=TableStyle([("BACKGROUND", (0, 0), (-1, -1), LEAF), ("BOX", (0, 0), (-1, -1), 1, FOREST), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")])),
     Spacer(1, 20 * mm),
     Paragraph("Trabalho individual", styles["Kicker"]),
-    Paragraph("Autoria: Tamy<br/>Ano: 2026<br/>Entrega: 18 de setembro de 2026", styles["Bodyx"]),
+    Paragraph("Autoria: Tamy<br/>RM: 552055<br/>Ano: 2026<br/>Entrega: 18 de setembro de 2026", styles["Bodyx"]),
     PageBreak(),
 ])
 

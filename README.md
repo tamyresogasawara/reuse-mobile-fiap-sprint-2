@@ -2,7 +2,7 @@
 
 Aplicativo acadêmico em React Native/Expo para compra, venda e troca de itens usados. A Sprint 2 transforma a proposta visual da primeira entrega em uma experiência navegável, com persistência local, fluxo de anúncio e integração com câmera/galeria.
 
-> Trabalho individual de Tamy para a disciplina de Mobile da FIAP, 2026.
+> Trabalho individual de Tamy — **RM552055** — para a disciplina de Mobile da FIAP, 2026.
 
 ## Demonstração
 
@@ -130,4 +130,4 @@ Os testes exercitam navegação, busca, favoritos, persistência com Async Stora
 
 ## Autoria
 
-Tamy — trabalho individual, FIAP, 2026.
+Tamy — **RM552055** — trabalho individual, FIAP, 2026.
