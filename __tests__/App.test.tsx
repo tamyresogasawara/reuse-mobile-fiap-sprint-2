@@ -8,9 +8,15 @@ beforeEach(async () => {
   await AsyncStorage.clear();
 });
 
+async function renderApp() {
+  const result = await render(<App />);
+  await waitFor(() => result.getByText('Dê uma nova história ao que já existe.'));
+  return result;
+}
+
 describe('ReUse Sprint 2', () => {
   it('leva a pessoa da apresentação para a descoberta de itens', async () => {
-    const { getByRole, getByText } = await render(<App />);
+    const { getByRole, getByText } = await renderApp();
 
     await waitFor(() => getByText('Dê uma nova história ao que já existe.'));
     fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
@@ -20,7 +26,7 @@ describe('ReUse Sprint 2', () => {
   });
 
   it('abre detalhes e persiste um item favorito', async () => {
-    const { getByRole, getByText } = await render(<App />);
+    const { getByRole, getByText } = await renderApp();
 
     fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
     await waitFor(() => getByText('Descubra boas escolhas'));
@@ -32,10 +38,26 @@ describe('ReUse Sprint 2', () => {
     await waitFor(async () => {
       expect(await AsyncStorage.getItem('@reuse/favorites')).toBe('["cafeteira"]');
     });
+    await waitFor(() => getByText('Favorito adicionado · +10 pontos de impacto.'));
+  });
+
+  it('não concede pontos de favorito quando o armazenamento falha', async () => {
+    const { getByRole, getByText, queryByText } = await renderApp();
+
+    fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
+    await waitFor(() => getByText('Descubra boas escolhas'));
+    fireEvent.press(getByRole('button', { name: 'Ver Cafeteira italiana' }));
+    await waitFor(() => getByText('Pronta para uma nova história'));
+    jest.mocked(AsyncStorage.setItem).mockRejectedValueOnce(new Error('storage full'));
+    fireEvent.press(getByRole('button', { name: 'Adicionar Cafeteira italiana aos favoritos' }));
+
+    await waitFor(() => getByText('Não foi possível salvar o favorito. Libere espaço e tente novamente.'));
+    expect(queryByText('Favorito adicionado · +10 pontos de impacto.')).toBeNull();
+    expect(await AsyncStorage.getItem('@reuse/favorites')).toBeNull();
   });
 
   it('confirma localmente o interesse no item com feedback acessível', async () => {
-    const { getByRole, getByText } = await render(<App />);
+    const { getByRole, getByText } = await renderApp();
 
     fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
     await waitFor(() => getByText('Descubra boas escolhas'));
@@ -50,7 +72,7 @@ describe('ReUse Sprint 2', () => {
   });
 
   it('busca itens por texto na navegação principal', async () => {
-    const { getByRole, getByText, getByPlaceholderText, getByTestId } = await render(<App />);
+    const { getByRole, getByText, getByPlaceholderText, getByTestId } = await renderApp();
 
     fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
     await waitFor(() => getByText('Descubra boas escolhas'));
@@ -66,7 +88,7 @@ describe('ReUse Sprint 2', () => {
   });
 
   it('filtra os resultados ao selecionar uma categoria', async () => {
-    const { getByRole, getByText, getByTestId } = await render(<App />);
+    const { getByRole, getByText, getByTestId } = await renderApp();
 
     fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
     await waitFor(() => getByText('Descubra boas escolhas'));
@@ -84,7 +106,7 @@ describe('ReUse Sprint 2', () => {
   });
 
   it('captura uma foto e persiste um novo anúncio', async () => {
-    const { getByRole, getByText, getByLabelText, getByPlaceholderText } = await render(<App />);
+    const { getByRole, getByText, getByLabelText, getByPlaceholderText, queryByText } = await renderApp();
 
     await fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
     await waitFor(() => getByText('Descubra boas escolhas'));
@@ -103,10 +125,49 @@ describe('ReUse Sprint 2', () => {
       expect(listings).toContain('file:///documents/reuse-listing-');
     });
     expect(File).toHaveBeenCalledWith('file:///reuse-camera.jpg');
+    getByText('+100 pontos de impacto por colocar um item em circulação.');
+
+    await fireEvent.press(getByRole('button', { name: 'Publicar anúncio' }));
+    await waitFor(() => getByText('Adicione uma foto, um título e um valor para publicar.'));
+    expect(queryByText('+100 pontos de impacto por colocar um item em circulação.')).toBeNull();
+  });
+
+  it('avisa quando o rascunho não pode ser salvo', async () => {
+    const { getByRole, getByText, getByPlaceholderText } = await renderApp();
+
+    fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
+    await waitFor(() => getByText('Descubra boas escolhas'));
+    fireEvent.press(getByRole('button', { name: /Anunciar, tab/ }));
+    await waitFor(() => getByText('O que você quer colocar em circulação?'));
+    jest.mocked(AsyncStorage.setItem).mockRejectedValueOnce(new Error('storage full'));
+
+    fireEvent.changeText(getByPlaceholderText('Ex.: Luminária de mesa'), 'Rascunho local');
+
+    await waitFor(() => getByText('Não foi possível salvar o rascunho. Mantenha esta tela aberta e tente editar novamente.'));
+  });
+
+  it('usa feedback neutro após a missão da primeira publicação', async () => {
+    await AsyncStorage.setItem('@reuse/listings', JSON.stringify([{ id: 'local-1', title: 'Cadeira restaurada', price: '85', description: 'Madeira', photoUri: 'file:///chair.jpg', createdAt: '2026-09-17T10:00:00.000Z' }]));
+    const { getByRole, getByText, getByLabelText, getByPlaceholderText, queryByText } = await renderApp();
+
+    fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
+    await waitFor(() => getByText('Descubra boas escolhas'));
+    fireEvent.press(getByRole('button', { name: /Anunciar, tab/ }));
+    await waitFor(() => getByText('O que você quer colocar em circulação?'));
+    fireEvent.press(getByRole('button', { name: 'Tirar foto' }));
+    await waitFor(() => getByLabelText('Prévia da foto do anúncio'));
+    await fireEvent.changeText(getByPlaceholderText('Ex.: Luminária de mesa'), 'Mesa lateral');
+    await fireEvent.changeText(getByPlaceholderText('0,00'), '70');
+
+    await fireEvent.press(getByRole('button', { name: 'Publicar anúncio' }));
+
+    await waitFor(() => getByText('Novo impacto registrado'));
+    expect(queryByText('Missão concluída')).toBeNull();
+    getByText('+100 pontos de impacto por colocar um item em circulação.');
   });
 
   it('não informa sucesso quando o anúncio não pode ser persistido', async () => {
-    const { getByRole, getByText, getByLabelText, getByPlaceholderText, queryByText } = await render(<App />);
+    const { getByRole, getByText, getByLabelText, getByPlaceholderText, queryByText } = await renderApp();
 
     fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
     await waitFor(() => getByText('Descubra boas escolhas'));
@@ -116,7 +177,7 @@ describe('ReUse Sprint 2', () => {
     await waitFor(() => getByLabelText('Prévia da foto do anúncio'));
     await fireEvent.changeText(getByPlaceholderText('Ex.: Luminária de mesa'), 'Luminária sem salvar');
     await fireEvent.changeText(getByPlaceholderText('0,00'), '80');
-    jest.mocked(AsyncStorage.setItem).mockRejectedValueOnce(new Error('storage full'));
+    jest.mocked(AsyncStorage.multiSet).mockRejectedValueOnce(new Error('storage full'));
 
     await fireEvent.press(getByRole('button', { name: 'Publicar anúncio' }));
 
@@ -127,7 +188,7 @@ describe('ReUse Sprint 2', () => {
 
   it('orienta a pessoa quando o acesso à câmera falha', async () => {
     jest.mocked(ImagePicker.requestCameraPermissionsAsync).mockRejectedValueOnce(new Error('permission service unavailable'));
-    const { getByRole, getByText } = await render(<App />);
+    const { getByRole, getByText } = await renderApp();
 
     fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
     await waitFor(() => getByText('Descubra boas escolhas'));
@@ -141,7 +202,7 @@ describe('ReUse Sprint 2', () => {
 
   it('orienta a pessoa quando a galeria não pode ser aberta', async () => {
     jest.mocked(ImagePicker.launchImageLibraryAsync).mockRejectedValueOnce(new Error('picker unavailable'));
-    const { getByRole, getByText } = await render(<App />);
+    const { getByRole, getByText } = await renderApp();
 
     fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
     await waitFor(() => getByText('Descubra boas escolhas'));
@@ -154,7 +215,7 @@ describe('ReUse Sprint 2', () => {
   });
 
   it('exibe os itens salvos na área de favoritos', async () => {
-    const { getByRole, getByText } = await render(<App />);
+    const { getByRole, getByText } = await renderApp();
 
     await fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
     await waitFor(() => getByText('Descubra boas escolhas'));
@@ -168,9 +229,28 @@ describe('ReUse Sprint 2', () => {
     getByText('Cafeteira italiana');
   });
 
+  it('abre o perfil e apresenta a jornada de impacto sustentável', async () => {
+    await AsyncStorage.setItem('@reuse/favorites', JSON.stringify(['cafeteira', 'mochila']));
+    await AsyncStorage.setItem('@reuse/listings', JSON.stringify([{ id: 'local-1', title: 'Cadeira restaurada', price: '85', description: 'Madeira', photoUri: 'file:///chair.jpg', createdAt: '2026-09-17T10:00:00.000Z' }]));
+    const { getByRole, getByText } = await renderApp();
+
+    fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
+    await waitFor(() => getByText('Descubra boas escolhas'));
+    fireEvent.press(getByRole('button', { name: /Perfil, tab/ }));
+    await waitFor(() => getByText('Seu espaço ReUse'));
+    fireEvent.press(getByRole('button', { name: 'Abrir meu impacto' }));
+
+    await waitFor(() => getByText('Sua jornada circular'));
+    getByText('120 pontos de impacto');
+    getByText('Nível Broto');
+    getByText('Compartilhe para circular');
+    getByText('Olhar consciente');
+    getByText('Como os pontos funcionam');
+  });
+
   it('abre o perfil e os anúncios locais persistidos', async () => {
     await AsyncStorage.setItem('@reuse/listings', JSON.stringify([{ id: 'local-1', title: 'Cadeira restaurada', price: '85', description: 'Madeira', photoUri: 'file:///chair.jpg', createdAt: '2026-09-17T10:00:00.000Z' }]));
-    const { getByRole, getByText } = await render(<App />);
+    const { getByRole, getByText } = await renderApp();
 
     await fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
     await waitFor(() => getByText('Descubra boas escolhas'));

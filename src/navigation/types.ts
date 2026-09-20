@@ -3,4 +3,5 @@ export type RootStackParams = {
   Main: undefined;
   Detail: { itemId: string };
   MyListings: undefined;
+  Impact: undefined;
 };

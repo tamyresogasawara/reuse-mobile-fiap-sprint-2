@@ -1,28 +1,45 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, radii } from '../theme';
 import type { RootStackParams } from '../navigation/types';
+import { useReducedMotion } from '../motion/useReducedMotion';
+import { motionSpecs } from '../motion/specs';
 
 type Props = NativeStackScreenProps<RootStackParams, 'Welcome'>;
 
 export function WelcomeScreen({ navigation }: Props) {
+  const reducedMotion = useReducedMotion();
+  const reveal = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (reducedMotion === null) return;
+    if (reducedMotion) reveal.setValue(1);
+    else {
+      const animation = Animated.timing(reveal, { toValue: 1, duration: motionSpecs.welcomeReveal.duration, delay: motionSpecs.welcomeReveal.delay, easing: Easing.out(Easing.cubic), useNativeDriver: true });
+      animation.start();
+      return () => animation.stop();
+    }
+  }, [reducedMotion, reveal]);
+
+  const revealStyle = { opacity: reveal.interpolate({ inputRange: [0, 0.7, 1], outputRange: [motionSpecs.welcomeReveal.from.opacity, motionSpecs.welcomeReveal.midpoint.opacity, motionSpecs.welcomeReveal.to.opacity] }), transform: [{ translateY: reveal.interpolate({ inputRange: [0, 0.7, 1], outputRange: [motionSpecs.welcomeReveal.from.translateY, motionSpecs.welcomeReveal.midpoint.translateY, motionSpecs.welcomeReveal.to.translateY] }) }] };
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.paper} />
       <View style={styles.page}>
         <View style={styles.brandRow}><View style={styles.dot} /><Text style={styles.brand}>ReUse</Text><Text style={styles.sprint}>SPRINT 02</Text></View>
-        <View style={styles.art} accessibilityLabel="Objetos circulando para um novo uso">
+        <Animated.View style={[styles.art, revealStyle]} accessibilityLabel="Objetos circulando para um novo uso">
           <View style={styles.orbit}><Text style={styles.artEmoji}>↻</Text></View>
           <View style={styles.itemA}><Text style={styles.smallEmoji}>☕</Text></View>
           <View style={styles.itemB}><Text style={styles.smallEmoji}>🎒</Text></View>
           <View style={styles.itemC}><Text style={styles.smallEmoji}>📚</Text></View>
-        </View>
-        <View>
+        </Animated.View>
+        <Animated.View style={revealStyle}>
           <Text style={styles.eyebrow}>CONSUMO QUE CIRCULA</Text>
           <Text style={styles.title}>Dê uma nova história ao que já existe.</Text>
           <Text style={styles.copy}>Compre, venda ou troque itens com pessoas perto de você. Menos descarte, mais escolhas conscientes.</Text>
-        </View>
+        </Animated.View>
         <Pressable accessibilityRole="button" accessibilityLabel="Começar a explorar" onPress={() => navigation.replace('Main')} style={styles.button}>
           <Text style={styles.buttonText}>Começar a explorar</Text><Text style={styles.arrow}>→</Text>
         </Pressable>

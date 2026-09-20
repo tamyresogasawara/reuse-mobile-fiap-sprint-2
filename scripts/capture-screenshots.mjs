@@ -55,6 +55,7 @@ await shot('s2-01-boas-vindas.png');
 
 await page.getByRole('button', { name: 'Começar a explorar' }).click();
 await page.getByText('Descubra boas escolhas').waitFor();
+await page.waitForTimeout(900);
 await shot('s2-02-inicio.png');
 
 await page.getByText('Buscar', { exact: true }).click();
@@ -68,6 +69,8 @@ await page.getByRole('button', { name: 'Ver Cafeteira italiana' }).click();
 await page.getByText('Pronta para uma nova história').waitFor();
 await shot('s2-04-detalhes.png');
 await page.getByRole('button', { name: 'Adicionar Cafeteira italiana aos favoritos' }).click();
+await page.getByText('Favorito adicionado · +10 pontos de impacto.').waitFor();
+await shot('s3-02-favorito-pontos.png');
 await page.getByRole('button', { name: 'Voltar' }).click();
 
 await page.getByText('Favoritos', { exact: true }).click();
@@ -90,10 +93,24 @@ await page.waitForTimeout(250);
 await shot('s2-07-foto-e-rascunho.png');
 await page.getByRole('button', { name: 'Publicar anúncio' }).click();
 await page.getByText('Anúncio publicado e salvo neste dispositivo.').waitFor();
+await page.getByText('+100 pontos de impacto por colocar um item em circulação.').waitFor();
+await shot('s3-03-missao-concluida.png');
 
 await page.getByText('Perfil', { exact: true }).click();
 await page.getByText('Seu espaço ReUse').waitFor();
 await shot('s2-08-perfil.png');
+await page.getByRole('button', { name: 'Abrir meu impacto' }).click();
+await page.getByText('Sua jornada circular').waitFor();
+await page.waitForTimeout(900);
+await shot('s3-04-impacto-gamificacao.png', true);
+await page.mouse.wheel(0, 650);
+await page.waitForTimeout(300);
+await shot('s3-05-impacto-medalhas.png');
+await page.mouse.wheel(0, 700);
+await page.waitForTimeout(300);
+await shot('s3-06-regras-pontos.png');
+await page.getByRole('button', { name: 'Voltar' }).click();
+await page.getByText('Seu espaço ReUse').waitFor();
 await page.getByRole('button', { name: 'Abrir meus anúncios' }).click();
 await page.getByText('Meus anúncios').last().waitFor();
 await page.getByText('Cadeira restaurada').waitFor();
@@ -102,7 +119,7 @@ await shot('s2-09-meus-anuncios.png');
 const checks = {
   myListingsScreen: await page.getByText('Meus anúncios').last().isVisible(),
   listingPersisted: await page.getByText('Cadeira restaurada').isVisible(),
-  screenshots: 9,
+  screenshots: 14,
   viewport: '390x844@2x',
 };
 console.log(JSON.stringify(checks));
