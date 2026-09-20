@@ -344,7 +344,7 @@ story.extend([
 story.extend([
     p("07 · TESTES E VALIDAÇÃO", "Kicker"), p("Entrega executada e verificável", "H1x"),
     data_table(["VERIFICAÇÃO", "RESULTADO"], [
-        ("Jest", "3 suítes · 19 testes aprovados"),
+        ("Jest", "3 suítes · 21 testes aprovados"),
         ("TypeScript", "tsc --noEmit sem erros"),
         ("Expo Doctor", "21/21 verificações aprovadas"),
         ("npm audit", "0 alto/crítico; 10 moderados transitivos no ferramental Expo, sem autofix compatível"),

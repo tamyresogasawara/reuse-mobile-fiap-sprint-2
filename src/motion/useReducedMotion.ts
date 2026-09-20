@@ -6,12 +6,16 @@ export function useReducedMotion() {
 
   useEffect(() => {
     let active = true;
+    let receivedEvent = false;
     AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
-      if (active) setReducedMotion(enabled);
+      if (active && !receivedEvent) setReducedMotion(enabled);
     }).catch(() => {
-      if (active) setReducedMotion(true);
+      if (active && !receivedEvent) setReducedMotion(true);
     });
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReducedMotion);
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
+      receivedEvent = true;
+      setReducedMotion(enabled);
+    });
     return () => {
       active = false;
       subscription.remove();

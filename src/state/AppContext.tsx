@@ -57,15 +57,23 @@ function parseListings(value: string | null): LocalListing[] {
   try {
     const parsed: unknown = JSON.parse(value);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item): item is LocalListing => Boolean(
-      item && typeof item === 'object'
-      && typeof item.id === 'string'
-      && typeof item.title === 'string'
-      && typeof item.price === 'string'
-      && typeof item.description === 'string'
-      && typeof item.photoUri === 'string'
-      && typeof item.createdAt === 'string',
-    ));
+    const seenIds = new Set<string>();
+    return parsed.filter((item): item is LocalListing => {
+      const valid = Boolean(
+        item && typeof item === 'object'
+        && typeof item.id === 'string'
+        && typeof item.title === 'string'
+        && typeof item.price === 'string'
+        && typeof item.description === 'string'
+        && typeof item.photoUri === 'string'
+        && typeof item.createdAt === 'string',
+      );
+      if (!valid) return false;
+      const id = (item as LocalListing).id;
+      if (seenIds.has(id)) return false;
+      seenIds.add(id);
+      return true;
+    });
   } catch {
     return [];
   }

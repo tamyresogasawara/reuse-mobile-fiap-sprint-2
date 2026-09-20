@@ -133,7 +133,7 @@ npm run export:web
 npm run screenshots
 ```
 
-A suíte contém 19 testes cobrindo navegação, busca, favoritos, falhas de persistência sem recompensa, aviso de rascunho, câmera/galeria, URI durável, publicação inicial e posterior, perfil, gamificação, regras de pontos e preferência de movimento reduzido. O roteiro Playwright percorre o build de produção em viewport mobile de 390 × 844 px e registra as evidências visuais do app real.
+A suíte contém 21 testes cobrindo navegação, busca, favoritos, falhas de persistência sem recompensa, aviso de rascunho, câmera/galeria, URI durável, publicação inicial e posterior, perfil, gamificação, deduplicação de anúncios persistidos, regras de pontos e preferência de movimento reduzido sem corrida assíncrona. O roteiro Playwright percorre o build de produção em viewport mobile de 390 × 844 px e registra as evidências visuais do app real.
 
 ## Limites conscientes
 

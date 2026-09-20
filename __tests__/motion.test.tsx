@@ -33,4 +33,24 @@ describe('preferência de movimento reduzido', () => {
 
     await waitFor(() => getByText('true'));
   });
+
+  it('não deixa a consulta inicial sobrescrever um evento mais recente', async () => {
+    let listener: ((enabled: boolean) => void) | undefined;
+    let resolveInitial: ((enabled: boolean) => void) | undefined;
+    jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockReturnValueOnce(new Promise<boolean>((resolve) => {
+      resolveInitial = resolve;
+    }));
+    jest.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation(((event: string, callback: (enabled: boolean) => void) => {
+      if (event === 'reduceMotionChanged') listener = callback;
+      return { remove: jest.fn() };
+    }) as never);
+    const { getByText } = await render(<ReducedMotionProbe />);
+
+    await act(async () => listener?.(true));
+    await waitFor(() => getByText('true'));
+
+    await act(async () => resolveInitial?.(false));
+
+    await waitFor(() => getByText('true'));
+  });
 });

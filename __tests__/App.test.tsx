@@ -248,6 +248,21 @@ describe('ReUse Sprint 2', () => {
     getByText('Como os pontos funcionam');
   });
 
+  it('não multiplica pontos ao hidratar anúncios duplicados', async () => {
+    const listing = { id: 'local-duplicado', title: 'Cadeira restaurada', price: '85', description: 'Madeira', photoUri: 'file:///chair.jpg', createdAt: '2026-09-17T10:00:00.000Z' };
+    await AsyncStorage.setItem('@reuse/listings', JSON.stringify([listing, { ...listing }]));
+    const { getByRole, getByText, queryByText } = await renderApp();
+
+    fireEvent.press(getByRole('button', { name: 'Começar a explorar' }));
+    await waitFor(() => getByText('Descubra boas escolhas'));
+    fireEvent.press(getByRole('button', { name: /Perfil, tab/ }));
+    await waitFor(() => getByText('Seu espaço ReUse'));
+    fireEvent.press(getByRole('button', { name: 'Abrir meu impacto' }));
+
+    await waitFor(() => getByText('100 pontos de impacto'));
+    expect(queryByText('200 pontos de impacto')).toBeNull();
+  });
+
   it('abre o perfil e os anúncios locais persistidos', async () => {
     await AsyncStorage.setItem('@reuse/listings', JSON.stringify([{ id: 'local-1', title: 'Cadeira restaurada', price: '85', description: 'Madeira', photoUri: 'file:///chair.jpg', createdAt: '2026-09-17T10:00:00.000Z' }]));
     const { getByRole, getByText } = await renderApp();
