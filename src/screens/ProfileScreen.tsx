@@ -3,21 +3,25 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParams } from '../navigation/types';
 import { useApp } from '../state/AppContext';
+import { useSession } from '../state/SessionContext';
 import { colors, radii } from '../theme';
 
 export function ProfileScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParams>>();
   const { favorites, listings } = useApp();
+  const { session, signOut } = useSession();
+  const name = session?.user.name ?? '';
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.page}>
         <Text style={styles.eyebrow}>PERFIL</Text><Text style={styles.title}>Seu espaço ReUse</Text>
-        <View style={styles.profile}><View style={styles.avatar}><Text style={styles.avatarText}>T</Text></View><View><Text style={styles.name}>Tamy</Text><Text style={styles.location}>Santos, SP · membro desde 2026</Text></View></View>
+        <View style={styles.profile}><View style={styles.avatar}><Text style={styles.avatarText}>{name.charAt(0).toUpperCase()}</Text></View><View style={styles.rowCopy}><Text style={styles.name}>{name}</Text><Text style={styles.location}>Sessão ativa como @{session?.user.username}</Text></View></View>
         <View style={styles.stats}><View style={styles.stat}><Text style={styles.statNumber}>{listings.length}</Text><Text style={styles.statLabel}>anúncios</Text></View><View style={styles.divider} /><View style={styles.stat}><Text style={styles.statNumber}>{favorites.length}</Text><Text style={styles.statLabel}>favoritos</Text></View><View style={styles.divider} /><View style={styles.stat}><Text style={styles.statNumber}>0</Text><Text style={styles.statLabel}>trocas</Text></View></View>
         <Text style={styles.section}>MINHA CONTA</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Abrir meus anúncios" onPress={() => navigation.navigate('MyListings')} style={styles.row}><View style={styles.rowIcon}><Text>▣</Text></View><View style={styles.rowCopy}><Text style={styles.rowTitle}>Meus anúncios</Text><Text style={styles.rowSub}>Gerencie itens publicados neste dispositivo</Text></View><Text style={styles.chevron}>›</Text></Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Abrir meu impacto" onPress={() => navigation.navigate('Impact')} style={styles.row}><View style={styles.rowIcon}><Text>♧</Text></View><View style={styles.rowCopy}><Text style={styles.rowTitle}>Meu impacto</Text><Text style={styles.rowSub}>Acompanhe pontos, missões e medalhas circulares</Text></View><Text style={styles.chevron}>›</Text></Pressable>
-        <View style={styles.privacy}><Text style={styles.privacyTitle}>Privacidade em primeiro lugar</Text><Text style={styles.privacyCopy}>Esta demonstração não envia dados pessoais. Favoritos, rascunhos e anúncios ficam somente no armazenamento local.</Text></View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Sair" onPress={signOut} style={styles.row}><View style={styles.rowIcon}><Text>⎋</Text></View><View style={styles.rowCopy}><Text style={styles.rowTitle}>Sair</Text><Text style={styles.rowSub}>Encerra a sessão e remove os tokens deste dispositivo</Text></View><Text style={styles.chevron}>›</Text></Pressable>
+        <View style={styles.privacy}><Text style={styles.privacyTitle}>Privacidade em primeiro lugar</Text><Text style={styles.privacyCopy}>O login usa a API pública DummyJSON. Os tokens ficam no SecureStore do celular (ou no armazenamento local na web) e expiram em 60 minutos. Favoritos, rascunhos e anúncios continuam somente neste dispositivo.</Text></View>
       </ScrollView>
     </SafeAreaView>
   );

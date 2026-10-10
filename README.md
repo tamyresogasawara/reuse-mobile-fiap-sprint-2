@@ -1,4 +1,4 @@
-# ReUse Mobile — Animações, Transições e Gamificação
+# ReUse Mobile — Sprint 2: APIs, Autenticação, Cache, Animações e Gamificação
 
 Evolução acadêmica do aplicativo ReUse em React Native/Expo. A atividade implementa movimento real, transições coerentes e uma camada de gamificação ética para incentivar escolhas sustentáveis sem ranking, pressão ou dark patterns.
 
@@ -12,7 +12,33 @@ Os storyboards e estados percentuais documentados no relatório podem ser reprod
 - Repositório: https://github.com/tamyresogasawara/reuse-mobile-fiap-sprint-2
 - Relatório final: [`docs/ReUse-Animacoes-Transicoes-Gamificacao.pdf`](docs/ReUse-Animacoes-Transicoes-Gamificacao.pdf)
 
-## Cobertura da atividade
+## APIs, autenticação e cache local
+
+A atividade de integração conecta o app à API pública [DummyJSON](https://dummyjson.com). O fluxo agora passa por login, restaura a sessão ao reabrir o app e oferece um catálogo online com cache local e fallback offline.
+
+| Critério | Peso | Entrega |
+|---|---:|---|
+| Consumo de API | 60% | Login por `POST /auth/login` e catálogo por `GET /products`, com validação da resposta, carregamento, atualização manual, retry e mensagens de erro. |
+| Autenticação e sessões | 20% | Tokens e perfil persistidos; restauração automática ao abrir; nome e usuário na Início e no Perfil; logout. |
+| Cache local | 20% | Catálogo salvo por 15 minutos; cache recente sem chamada de rede; último cache como fallback offline. |
+
+**Autenticação** — `src/services/auth.ts` envia `username`, `password` e `expiresInMins: 60` para `https://dummyjson.com/auth/login`, valida a resposta e normaliza `accessToken`, `refreshToken`, `id`, `username` e nome. A sessão é salva com **Expo SecureStore** no Android/iOS e com Async Storage na web (o SecureStore não existe no navegador). `SessionProvider` (`src/state/SessionContext.tsx`) restaura e valida a sessão antes de montar as rotas: sem sessão válida ou após 60 minutos, a pessoa vê Boas-vindas → Login; com sessão válida, abre direto a navegação principal. Dados locais inválidos são descartados, e **Sair** (Perfil) apaga a sessão e volta para as boas-vindas.
+
+Conta pública para avaliação: `emilys` / `emilyspass`.
+
+**Catálogo** — `src/services/products.ts` consulta `https://dummyjson.com/products?limit=12&select=id,title,description,price,category,thumbnail`. A tela **Catálogo online** (`ExploreScreen`, aberta pelo cartão na Início) mostra título, categoria, descrição, miniatura e preço em reais, além da origem dos dados.
+
+**Cache** — chave `@reuse/products-v1`, com a lista validada e `savedAt`, TTL de 15 minutos:
+
+- cache recente: retorna sem chamar a API (“Dados carregados do cache local”);
+- cache ausente ou expirado: consulta a rede e salva nova versão (“Dados atualizados pela API”);
+- falha de rede com cache: mostra o último catálogo com aviso (“Sem conexão — exibindo o último cache disponível”);
+- falha sem cache: mostra erro e o botão **Tentar novamente**;
+- **Atualizar catálogo** ignora o TTL e força nova requisição.
+
+Falhas de leitura ou gravação do armazenamento não impedem o uso dos dados da rede.
+
+## Cobertura da atividade de animações e gamificação
 
 ### Animações — 20%
 
@@ -58,16 +84,18 @@ A tela **Meu impacto** implementa uma fatia funcional do sistema:
 
 A pontuação é recalculada a partir dos dados reais em Async Storage. Remover um favorito remove seus pontos e favoritar o mesmo ID não duplica a recompensa. Cada anúncio distinto vale 100 pontos; “Compartilhe para circular” é uma missão única, então publicações posteriores recebem o feedback neutro “Novo impacto registrado”. Os pontos mostrados nas missões resumem as ações já contabilizadas e não são bônus adicionais.
 
-## Fluxos preservados
+## Fluxos
 
-1. boas-vindas e descoberta;
-2. busca por texto e categoria;
-3. detalhes e favoritos persistidos;
-4. interesse local sem envio de mensagem;
-5. anúncio por câmera/galeria com URI durável no nativo;
-6. rascunho e publicação em Async Storage;
-7. perfil e Meus anúncios;
-8. Meu impacto com pontos, níveis, missões e medalhas.
+1. boas-vindas, login e sessão persistente;
+2. catálogo online da API com cache e modo offline;
+3. descoberta de itens locais;
+4. busca por texto e categoria;
+5. detalhes e favoritos persistidos;
+6. interesse local sem envio de mensagem;
+7. anúncio por câmera/galeria com URI durável no nativo;
+8. rascunho e publicação em Async Storage;
+9. perfil, Meus anúncios e logout;
+10. Meu impacto com pontos, níveis, missões e medalhas.
 
 ## Câmera, armazenamento e privacidade
 
@@ -78,8 +106,10 @@ O fluxo usa `expo-image-picker` e `expo-file-system`. Em Android/iOS solicita pe
 | `@reuse/favorites` | IDs únicos | favoritos e pontos de impacto |
 | `@reuse/draft` | título, valor, descrição e URI | rascunho automático |
 | `@reuse/listings` | anúncios locais com ID e data | Meus anúncios e pontos de impacto |
+| `@reuse/products-v1` | produtos da API e `savedAt` | cache do catálogo online (15 min) |
+| `reuse-session-v1` | tokens, expiração e perfil | sessão (SecureStore no nativo, Async Storage na web) |
 
-Não há backend, credenciais, pagamento, chat real ou transmissão de dados pessoais.
+As únicas chamadas externas são o login e o catálogo da DummyJSON. Não há pagamento, chat real ou envio de favoritos, rascunhos e anúncios para servidores.
 
 ## Estrutura principal
 
@@ -88,7 +118,11 @@ Não há backend, credenciais, pagamento, chat real ou transmissão de dados pes
 ├── App.tsx
 ├── __tests__/
 │   ├── App.test.tsx
-│   └── gamification.test.ts
+│   ├── ExploreScreen.test.tsx
+│   ├── auth.test.ts
+│   ├── gamification.test.ts
+│   ├── motion.test.tsx
+│   └── products.test.ts
 ├── docs/
 │   ├── assets/
 │   └── ReUse-Animacoes-Transicoes-Gamificacao.pdf
@@ -102,9 +136,16 @@ Não há backend, credenciais, pagamento, chat real ou transmissão de dados pes
     │   └── useReducedMotion.ts
     ├── navigation/
     ├── screens/
+    │   ├── ExploreScreen.tsx
     │   ├── ImpactScreen.tsx
+    │   ├── LoginScreen.tsx
     │   └── ...
-    ├── state/AppContext.tsx
+    ├── services/
+    │   ├── auth.ts
+    │   └── products.ts
+    ├── state/
+    │   ├── AppContext.tsx
+    │   └── SessionContext.tsx
     └── theme.ts
 ```
 
@@ -133,11 +174,12 @@ npm run export:web
 npm run screenshots
 ```
 
-A suíte contém 21 testes cobrindo navegação, busca, favoritos, falhas de persistência sem recompensa, aviso de rascunho, câmera/galeria, URI durável, publicação inicial e posterior, perfil, gamificação, deduplicação de anúncios persistidos, regras de pontos e preferência de movimento reduzido sem corrida assíncrona. O roteiro Playwright percorre o build de produção em viewport mobile de 390 × 844 px e registra as evidências visuais do app real.
+A suíte contém 38 testes em 6 suítes. Os da integração cobrem autenticação e normalização da resposta, persistência/restauração/expiração/encerramento da sessão, validação do formulário e credenciais recusadas, catálogo salvo no cache, cache recente sem rede, fallback do cache expirado, falhas de leitura/gravação do cache, erro com retry e logout pelo perfil. Os demais cobrem navegação, busca, favoritos, falhas de persistência sem recompensa, aviso de rascunho, câmera/galeria, URI durável, publicação inicial e posterior, perfil, gamificação, deduplicação de anúncios persistidos, regras de pontos e preferência de movimento reduzido sem corrida assíncrona. O roteiro Playwright percorre o build de produção em viewport mobile de 390 × 844 px e registra as evidências visuais do app real.
 
 ## Limites conscientes
 
-- O protótipo não possui backend, autenticação, pagamento, chat ou ranking público.
+- A DummyJSON é uma API pública de demonstração: o catálogo online é separado dos itens e anúncios locais, e o `refreshToken` é guardado mas não é usado para renovar a sessão — após 60 minutos é preciso entrar de novo.
+- O protótipo não possui backend próprio, pagamento, chat ou ranking público.
 - Pontos não têm valor financeiro e não podem ser comprados.
 - A sequência semanal é um conceito de consistência sem perda de progresso por pausa.
 - A câmera nativa deve ser validada em Android/iOS com Expo Go ou build próprio; no preview web o seletor de arquivo é o fallback.
