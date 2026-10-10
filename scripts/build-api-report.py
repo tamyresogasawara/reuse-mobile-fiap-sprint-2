@@ -340,7 +340,7 @@ def main() -> None:
     # Cache
     add_page_break(doc)
     add_title(doc, "4. Cache local e experiência offline", "Catálogo rápido e resiliente a falhas de rede")
-    add_picture_pair(doc, ("s4-02-catalogo-api.png", "Figura 4 — Catálogo com dados atualizados pela API."), ("s4-03-catalogo-offline.png", "Figura 5 — Sem conexão: último cache com aviso."))
+    add_picture_pair(doc, ("s4-02-catalogo-api.png", "Figura 4 — Catálogo com dados atualizados pela API."), ("s4-03-catalogo-offline.png", "Figura 5 — Rede indisponível (simulada): último cache com aviso."))
     add_body(doc, "O cache usa a chave @reuse/products-v1 e guarda a lista validada de produtos com savedAt. O prazo de validade é de 15 minutos.")
     add_heading(doc, "Regras de leitura", 1)
     add_bullet(doc, "Cache recente: retorna imediatamente sem chamada à API.")
@@ -356,7 +356,8 @@ def main() -> None:
         ("Jest", "38 testes aprovados em 6 suítes"),
         ("TypeScript", "typecheck sem erros"),
         ("Build Expo Web", "exportação concluída e publicada no GitHub Pages"),
-        ("Playwright", "login real, catálogo da API, cache e modo offline registrados nas figuras"),
+        ("Integração ao vivo", "login real com emilys e 12 produtos retornados pela DummyJSON"),
+        ("Playwright", "build web de produção com a API real: login, sessão, catálogo e cache; modo offline simulado bloqueando a requisição do catálogo"),
         ("GitHub", "repositório tamyresogasawara/reuse-mobile-fiap-sprint-2"),
     ], [Cm(6), Cm(10.6)])
 

@@ -10,7 +10,8 @@ Os storyboards e estados percentuais documentados no relatório podem ser reprod
 
 - Preview web: https://tamyresogasawara.github.io/reuse-mobile-fiap-sprint-2/
 - Repositório: https://github.com/tamyresogasawara/reuse-mobile-fiap-sprint-2
-- Relatório final: [`docs/ReUse-Animacoes-Transicoes-Gamificacao.pdf`](docs/ReUse-Animacoes-Transicoes-Gamificacao.pdf)
+- Relatório — APIs, autenticação e cache: [`docs/TamyresOgasawaraMacedo-ReUse-APIs-Auth-Cache.pdf`](docs/TamyresOgasawaraMacedo-ReUse-APIs-Auth-Cache.pdf)
+- Relatório — animações, transições e gamificação: [`docs/ReUse-Animacoes-Transicoes-Gamificacao.pdf`](docs/ReUse-Animacoes-Transicoes-Gamificacao.pdf)
 
 ## APIs, autenticação e cache local
 
