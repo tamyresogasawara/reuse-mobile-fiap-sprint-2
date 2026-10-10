@@ -40,7 +40,7 @@ export function WelcomeScreen({ navigation }: Props) {
           <Text style={styles.title}>Dê uma nova história ao que já existe.</Text>
           <Text style={styles.copy}>Compre, venda ou troque itens com pessoas perto de você. Menos descarte, mais escolhas conscientes.</Text>
         </Animated.View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Começar a explorar" onPress={() => navigation.replace('Main')} style={styles.button}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Começar a explorar" onPress={() => navigation.navigate('Login')} style={styles.button}>
           <Text style={styles.buttonText}>Começar a explorar</Text><Text style={styles.arrow}>→</Text>
         </Pressable>
       </View>

@@ -1,6 +1,6 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProductCard } from '../components/ProductCard';
 import { items } from '../data/items';
@@ -8,10 +8,13 @@ import type { RootStackParams } from '../navigation/types';
 import { colors } from '../theme';
 import { useReducedMotion } from '../motion/useReducedMotion';
 import { motionSpecs } from '../motion/specs';
+import { useSession } from '../state/SessionContext';
 
 export function HomeScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParams>>();
   const reducedMotion = useReducedMotion();
+  const { session } = useSession();
+  const firstName = session?.user.name.split(' ')[0] || 'você';
   const reveal = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (reducedMotion === null) return;
@@ -26,8 +29,9 @@ export function HomeScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
-        <View style={styles.top}><View><Text style={styles.greeting}>OLÁ, TAMY</Text><Text style={styles.title}>Descubra boas escolhas</Text></View><View style={styles.avatar}><Text style={styles.avatarText}>T</Text></View></View>
+        <View style={styles.top}><View><Text style={styles.greeting}>OLÁ, {firstName.toUpperCase()}</Text><Text style={styles.title}>Descubra boas escolhas</Text></View><View style={styles.avatar}><Text style={styles.avatarText}>{firstName.charAt(0).toUpperCase()}</Text></View></View>
         <Animated.View style={[styles.impact, revealStyle]}><View><Text style={styles.impactLabel}>IMPACTO COLETIVO</Text><Text style={styles.impactNumber}>12.480</Text><Text style={styles.impactCopy}>itens ganharam uma nova história</Text></View><Text style={styles.impactMark}>↻</Text></Animated.View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Abrir catálogo online" onPress={() => navigation.navigate('Explore')} style={({ pressed }) => [styles.catalog, pressed && styles.pressed]}><View style={styles.catalogCopy}><Text style={styles.catalogLabel}>CATÁLOGO ONLINE · API</Text><Text style={styles.catalogTitle}>Mais itens disponíveis agora</Text><Text style={styles.catalogSub}>Atualizado pela DummyJSON, com cache local para uso offline</Text></View><Text style={styles.catalogArrow}>→</Text></Pressable>
         <View style={styles.sectionRow}><Text style={styles.sectionTitle}>Perto de você</Text><Text style={styles.link}>Ver todos</Text></View>
         <Animated.View style={[styles.grid, revealStyle]}>{items.map((item) => <ProductCard key={item.id} item={item} onPress={() => navigation.navigate('Detail', { itemId: item.id })} />)}</Animated.View>
       </ScrollView>
@@ -48,6 +52,13 @@ const styles = StyleSheet.create({
   impactNumber: { color: colors.surface, fontSize: 32, fontWeight: '900', marginTop: 8 },
   impactCopy: { color: '#C9D7CE', fontSize: 12, marginTop: 2 },
   impactMark: { color: colors.leaf, fontSize: 70, opacity: 0.5 },
+  catalog: { alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: 20, borderWidth: 1, flexDirection: 'row', marginTop: 12, padding: 16 },
+  pressed: { opacity: 0.78 },
+  catalogCopy: { flex: 1 },
+  catalogLabel: { color: colors.forest, fontSize: 9, fontWeight: '900', letterSpacing: 1.2 },
+  catalogTitle: { color: colors.ink, fontSize: 16, fontWeight: '900', marginTop: 4 },
+  catalogSub: { color: colors.muted, fontSize: 11, lineHeight: 16, marginTop: 3 },
+  catalogArrow: { color: colors.forest, fontSize: 24, marginLeft: 10 },
   sectionRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, marginTop: 26 },
   sectionTitle: { color: colors.ink, fontSize: 21, fontWeight: '900' },
   link: { color: colors.forest, fontSize: 12, fontWeight: '800' },

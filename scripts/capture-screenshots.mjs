@@ -54,6 +54,10 @@ await page.getByText('Dê uma nova história ao que já existe.').waitFor();
 await shot('s2-01-boas-vindas.png');
 
 await page.getByRole('button', { name: 'Começar a explorar' }).click();
+await page.getByText('Entre para explorar a ReUse.').waitFor();
+await page.getByPlaceholder('Usuário').fill('emilys');
+await page.getByPlaceholder('Senha').fill('emilyspass');
+await page.getByRole('button', { name: 'Entrar' }).click();
 await page.getByText('Descubra boas escolhas').waitFor();
 await page.waitForTimeout(900);
 await shot('s2-02-inicio.png');
