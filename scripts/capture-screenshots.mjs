@@ -40,7 +40,7 @@ const server = createServer((request, response) => {
 });
 await new Promise((resolve) => server.listen(4173, '127.0.0.1', resolve));
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
 await page.goto(baseUrl, { waitUntil: 'networkidle' });
 await page.evaluate(() => localStorage.clear());
@@ -57,10 +57,31 @@ await page.getByRole('button', { name: 'Começar a explorar' }).click();
 await page.getByText('Entre para explorar a ReUse.').waitFor();
 await page.getByPlaceholder('Usuário').fill('emilys');
 await page.getByPlaceholder('Senha').fill('emilyspass');
+await shot('s4-01-login.png');
 await page.getByRole('button', { name: 'Entrar' }).click();
 await page.getByText('Descubra boas escolhas').waitFor();
 await page.waitForTimeout(900);
 await shot('s2-02-inicio.png');
+
+// Catálogo online: dados da API, depois cache expirado com a rede indisponível.
+await page.getByRole('button', { name: 'Abrir catálogo online' }).click();
+await page.getByText('Dados atualizados pela API').waitFor();
+await page.waitForLoadState('networkidle');
+await shot('s4-02-catalogo-api.png');
+await page.getByRole('button', { name: 'Voltar para o início' }).click();
+await page.evaluate(() => {
+  const cache = JSON.parse(localStorage.getItem('@reuse/products-v1'));
+  cache.savedAt -= 16 * 60 * 1000;
+  localStorage.setItem('@reuse/products-v1', JSON.stringify(cache));
+});
+await page.route(/^https:\/\/dummyjson\.com\/products/, (route) => route.abort('internetdisconnected'));
+await page.getByRole('button', { name: 'Abrir catálogo online' }).click();
+await page.getByText('Sem conexão — exibindo o último cache disponível').waitFor();
+await page.waitForLoadState('networkidle');
+await shot('s4-03-catalogo-offline.png');
+await page.unroute(/^https:\/\/dummyjson\.com\/products/);
+await page.getByRole('button', { name: 'Voltar para o início' }).click();
+await page.getByText('Descubra boas escolhas').waitFor();
 
 await page.getByText('Buscar', { exact: true }).click();
 await page.getByText('Encontre o que merece continuar').waitFor();
@@ -123,7 +144,7 @@ await shot('s2-09-meus-anuncios.png');
 const checks = {
   myListingsScreen: await page.getByText('Meus anúncios').last().isVisible(),
   listingPersisted: await page.getByText('Cadeira restaurada').isVisible(),
-  screenshots: 14,
+  screenshots: 17,
   viewport: '390x844@2x',
 };
 console.log(JSON.stringify(checks));
