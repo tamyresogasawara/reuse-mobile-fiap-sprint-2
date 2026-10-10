@@ -81,6 +81,7 @@ def add_page_number(paragraph) -> None:
 
 def add_title(doc: Document, text: str, subtitle: str | None = None) -> None:
     p = doc.add_paragraph()
+    p.paragraph_format.page_break_before = True
     p.paragraph_format.space_before = Pt(2)
     p.paragraph_format.space_after = Pt(8)
     run = p.add_run(text)
@@ -212,10 +213,10 @@ def add_table(doc: Document, headers: list[str], rows: list[tuple[str, ...]], wi
     doc.add_paragraph()
 
 
-def add_picture_pair(doc: Document, left: tuple[str, str], right: tuple[str, str], width_cm: float = 6.4) -> None:
-    table = doc.add_table(rows=2, cols=2)
+def add_picture_row(doc: Document, pictures: list[tuple[str, str]], width_cm: float) -> None:
+    table = doc.add_table(rows=2, cols=len(pictures))
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    for col, (filename, caption) in enumerate((left, right)):
+    for col, (filename, caption) in enumerate(pictures):
         picture = table.cell(0, col).paragraphs[0]
         picture.alignment = WD_ALIGN_PARAGRAPH.CENTER
         picture.add_run().add_picture(str(ASSETS / filename), width=Cm(width_cm))
@@ -288,7 +289,6 @@ def main() -> None:
     date.add_run("Outubro de 2026").font.color.rgb = RGBColor.from_string(MUTED)
 
     # Resumo e arquitetura
-    add_page_break(doc)
     add_title(doc, "1. Visão geral da solução", "Como a implementação atende aos três critérios da atividade")
     add_body(doc, "A ReUse da Sprint 2 — com busca, favoritos, anúncios por câmera e gamificação — passou a ser conectada à API pública DummyJSON. O fluxo agora vai das boas-vindas ao login, restaura a sessão ao reabrir o aplicativo e oferece um catálogo online com cache local e fallback offline, sem perder nenhuma funcionalidade anterior.")
     add_table(doc, ["Critério", "Peso", "Entrega implementada"], [
@@ -306,51 +306,65 @@ def main() -> None:
     add_bullet(doc, "Testes automatizados: serviços, telas, navegação, sessão, gamificação e movimento.")
 
     # APIs
-    add_page_break(doc)
-    add_title(doc, "2. APIs utilizadas", "Duas integrações externas cobrem autenticação e conteúdo")
-    add_tag(doc, "API PÚBLICA · DUMMYJSON")
+    add_title(doc, "2. Consumo de APIs", "APIs utilizadas, telas atualizadas e código-fonte")
     add_heading(doc, "2.1 Autenticação", 1)
     add_body(doc, "Endpoint: POST https://dummyjson.com/auth/login")
     add_body(doc, "A LoginScreen valida os campos e envia username, password e validade de 60 minutos. A resposta é validada antes de gerar uma sessão com accessToken, refreshToken e dados normalizados do usuário. Credenciais recusadas (HTTP 400) e outras falhas produzem mensagens claras sem liberar a navegação.")
-    add_bullet(doc, "Telas afetadas: Boas-vindas → LoginScreen → navegação principal.")
     add_bullet(doc, "Dados utilizados: accessToken, refreshToken, id, username, firstName e lastName.")
     add_bullet(doc, "Conta pública de avaliação: emilys / emilyspass.")
 
     add_heading(doc, "2.2 Catálogo de produtos", 1)
     add_body(doc, "Endpoint: GET https://dummyjson.com/products?limit=12&select=id,title,description,price,category,thumbnail")
     add_body(doc, "O cartão Catálogo online da Início abre a ExploreScreen, que apresenta doze produtos recebidos da API com miniatura, título, categoria, descrição e preço formatado em reais. A tela mostra a origem dos dados: rede, cache recente ou cache expirado em modo offline.")
-    add_bullet(doc, "Tela afetada: ExploreScreen (Catálogo online).")
-    add_bullet(doc, "Estados visuais: carregando, sucesso, erro, retry, cache e offline.")
-    add_bullet(doc, "Atualização manual: o botão Atualizar catálogo ignora o TTL e força nova requisição.")
+    add_bullet(doc, "Estados visuais: carregando, sucesso, erro, retry, cache e offline; Atualizar catálogo força nova requisição.")
+
+    add_heading(doc, "2.3 Telas atualizadas", 1)
+    add_table(doc, ["Tela", "O que mudou"], [
+        ("Boas-vindas (WelcomeScreen)", "O botão Começar a explorar passa a levar ao login."),
+        ("Login (LoginScreen) — nova", "Formulário integrado ao POST /auth/login, com validação e mensagens de erro."),
+        ("Início (HomeScreen)", "Saudação com o nome da sessão e cartão que abre o Catálogo online."),
+        ("Catálogo online (ExploreScreen) — nova", "Produtos do GET /products, com cache local, aviso offline, retry e atualização manual."),
+        ("Perfil (ProfileScreen)", "Nome e usuário da sessão e botão Sair."),
+    ], [Cm(5.6), Cm(11)])
+
+    add_heading(doc, "2.4 Código-fonte React Native", 1)
+    p = doc.add_paragraph()
+    p.add_run("GitHub: ").bold = True
+    add_hyperlink(p, REPO_URL, REPO_URL)
+    p = doc.add_paragraph()
+    p.add_run("Aplicação web: ").bold = True
+    add_hyperlink(p, PREVIEW_URL, PREVIEW_URL)
 
     # Sessão
-    add_page_break(doc)
-    add_title(doc, "3. Autenticação e gerenciamento de sessão", "Fluxo protegido do acesso ao logout")
-    add_picture_pair(doc, ("s4-01-login.png", "Figura 1 — Login integrado à API DummyJSON."), ("s2-02-inicio.png", "Figura 2 — Início autenticada com o nome da sessão e o catálogo online."))
-    add_body(doc, "No Android e iOS, os tokens são persistidos com Expo SecureStore. Na web, o aplicativo usa Async Storage, porque o SecureStore não existe no navegador. Ao iniciar, o SessionProvider restaura e valida a sessão salva antes de montar as rotas protegidas.")
-    add_bullet(doc, "Sem sessão válida ou após 60 minutos: a pessoa vê Boas-vindas e Login.")
-    add_bullet(doc, "Sessão válida: o aplicativo abre direto na navegação principal.")
-    add_bullet(doc, "Logout: o botão Sair do Perfil remove a sessão e retorna às boas-vindas.")
-    add_bullet(doc, "Dados locais inválidos: são descartados em vez de quebrar o aplicativo.")
-
-    add_page_break(doc)
-    add_picture(doc, "s2-08-perfil.png", 6.4, "Figura 3 — Perfil com o usuário autenticado e a opção Sair.")
-    add_body(doc, "O Perfil identifica a pessoa pelo nome e usuário recebidos da API e explica onde os tokens ficam guardados. Favoritos, rascunhos, anúncios e pontos de impacto continuam somente no dispositivo.")
+    add_title(doc, "3. Autenticação e sessões", "Telas em que foram aplicadas")
+    add_table(doc, ["Tela", "Uso da autenticação e da sessão"], [
+        ("Boas-vindas e Login", "Exibidas somente sem sessão válida; o login cria e salva a sessão."),
+        ("Início", "Mostra o nome do usuário autenticado."),
+        ("Perfil", "Mostra nome e usuário; o botão Sair encerra a sessão."),
+        ("Demais telas", "Abas, Detalhes, Catálogo online, Meus anúncios e Meu impacto só são montadas com sessão válida."),
+    ], [Cm(4.6), Cm(12)])
+    add_picture_row(doc, [
+        ("s4-01-login.png", "Figura 1 — Login integrado à API DummyJSON."),
+        ("s2-02-inicio.png", "Figura 2 — Início com o nome da sessão."),
+        ("s2-08-perfil.png", "Figura 3 — Perfil com usuário e opção Sair."),
+    ], 4.4)
+    add_body(doc, "No Android e iOS, os tokens são persistidos com Expo SecureStore; na web, com Async Storage, porque o SecureStore não existe no navegador. Ao iniciar, o SessionProvider restaura e valida a sessão salva: se for válida, o app abre direto na navegação principal; se tiver expirado (60 minutos) ou estiver corrompida, é descartada e a pessoa volta às boas-vindas.")
 
     # Cache
-    add_page_break(doc)
-    add_title(doc, "4. Cache local e experiência offline", "Catálogo rápido e resiliente a falhas de rede")
-    add_picture_pair(doc, ("s4-02-catalogo-api.png", "Figura 4 — Catálogo com dados atualizados pela API."), ("s4-03-catalogo-offline.png", "Figura 5 — Rede indisponível (simulada): último cache com aviso."))
-    add_body(doc, "O cache usa a chave @reuse/products-v1 e guarda a lista validada de produtos com savedAt. O prazo de validade é de 15 minutos.")
+    add_title(doc, "4. Caching local", "Itens em cache e telas em que foi aplicado")
+    add_table(doc, ["Item em cache", "Conteúdo", "Validade", "Telas"], [
+        ("Catálogo de produtos (@reuse/products-v1)", "12 produtos da API (id, title, description, price, category, thumbnail) e savedAt", "15 minutos; depois vira fallback offline", "Catálogo online"),
+        ("Sessão (reuse-session-v1)", "accessToken, refreshToken, expiresAt, id, username e nome", "60 minutos", "Login, Início e Perfil; restaurada ao abrir o app"),
+    ], [Cm(4.2), Cm(5.8), Cm(3.4), Cm(3.2)])
+    add_body(doc, "O catálogo fica no Async Storage. A sessão fica no Expo SecureStore no Android/iOS e no Async Storage na web. Favoritos, rascunho e anúncios da sprint anterior continuam salvos localmente no Async Storage.")
+    add_picture_row(doc, [("s4-02-catalogo-api.png", "Figura 4 — Catálogo com dados atualizados pela API."), ("s4-03-catalogo-offline.png", "Figura 5 — Rede indisponível (simulada): último cache com aviso.")], 4.0)
     add_heading(doc, "Regras de leitura", 1)
     add_bullet(doc, "Cache recente: retorna imediatamente sem chamada à API.")
     add_bullet(doc, "Cache ausente ou expirado: consulta a rede e salva uma nova versão.")
     add_bullet(doc, "Falha de rede com cache disponível: apresenta o último catálogo com aviso offline.")
-    add_bullet(doc, "Falha sem cache: mostra erro e botão para tentar novamente.")
-    add_bullet(doc, "Falhas de leitura ou gravação do armazenamento não impedem o uso dos dados da rede.")
+    add_bullet(doc, "Falha sem cache: mostra erro e botão para tentar novamente. Falhas do armazenamento não impedem o uso dos dados da rede.")
 
     # Evidências
-    add_page_break(doc)
     add_title(doc, "5. Testes e verificação", "Evidências executadas sobre a implementação final")
     add_table(doc, ["Verificação", "Resultado"], [
         ("Jest", "38 testes aprovados em 6 suítes"),
@@ -371,7 +385,6 @@ def main() -> None:
     add_bullet(doc, "Fluxos anteriores preservados: busca, favoritos, anúncios, perfil e gamificação.")
 
     # Conclusão
-    add_page_break(doc)
     add_title(doc, "6. Conclusão", "Resultado e aderência ao objetivo da atividade")
     add_body(doc, "A ReUse atende aos três eixos de avaliação. A API sustenta tanto o acesso quanto o catálogo online. A sessão persistente protege o fluxo principal e melhora a continuidade de uso. O cache local reduz chamadas desnecessárias e mantém o catálogo disponível durante falhas temporárias de conexão.")
     add_body(doc, "A integração foi feita sobre a base da Sprint 2, preservando a identidade visual, as animações, a gamificação e os fluxos locais, com separação entre telas, serviços, estado e testes.")
